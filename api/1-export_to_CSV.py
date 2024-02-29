@@ -1,49 +1,26 @@
 import csv
-import os  # Import the os module
-import requests
-import sys
+import requests 
+from sys import argv
 
-def getData(id):
-    users_url = f"https://jsonplaceholder.typicode.com/users/{id}"
-    todos_url = f"{users_url}/todos"
+id = argv[1]
+url1 = f'https://jsonplaceholder.typicode.com/users/{id}/todos'
+empurl= f'https://jsonplaceholder.typicode.com/users/{id}'
 
-    # Check if the CSV file exists, create an empty one if not
-    csv_filename = f"{id}.csv"
-    if not os.path.exists(csv_filename):
-        create_empty_csv(id)
+res1 = requests.get(url1)
+data1 = res1.json()
 
-    user_response = requests.get(users_url)
-    user_data = user_response.json()
+res2 = requests.get(empurl)
+employeedata = res2.json()
 
-    tasks_response = requests.get(todos_url)
-    tasks = tasks_response.json()
+USER_ID = employeedata['id']
+USERNAME = employeedata['username']
+TASK_COMPLETED_STATUS = ''
+TOTAL_NUMBER_OF_TASKS = len(data1)
+TASK_TITLE = ''
 
-    with open(csv_filename, "w", newline='') as csvfile:
-        writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
-        writer.writerow(["USER_ID", "USERNAME", "TASK_COMPLETED_STATUS", "TASK_TITLE"])
-        for task in tasks:
-            writer.writerow([id, user_data['username'], task['completed'], task['title']])
-
-    with open(csv_filename, 'r') as f:
-        csv_reader = csv.reader(f)
-        next(csv_reader)
-        num_tasks_in_csv = sum(1 for _ in csv_reader)
-
-    if num_tasks_in_csv == len(tasks):
-        print("Number of tasks in CSV: OK")
-    else:
-        print("Number of tasks in CSV: Incorrect")
-
-def create_empty_csv(user_id):
-    csv_filename = f"{user_id}.csv"
-    with open(csv_filename, "w", newline='') as csvfile:
-        writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
-        writer.writerow(["USER_ID", "USERNAME", "TASK_COMPLETED_STATUS", "TASK_TITLE"])
-
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        id = int(sys.argv[1])
-    else:
-        id = 1
-
-    getData(id)
+with open(f'{USER_ID}.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    for i in range(len(data1)):
+        TASK_COMPLETED_STATUS = data1[i]['completed']
+        TASK_TITLE = data1[i]['title']
+        writer.writerow([USER_ID,USERNAME,TASK_COMPLETED_STATUS,TASK_TITLE])
