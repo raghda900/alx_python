@@ -1,27 +1,38 @@
-#!/usr/bin/python3
+"""This module makes 2 api requests and 
+uses the informatiom given to write it to a json file
 """
-Script that, using this REST API, for a given employee ID, returns
-information about his/her TODO list progress
-and export data in the JSON format.
-"""
+
 import json
+import requests 
+from sys import argv
 
-def export_tasks_to_json(user_id, username, tasks):
-    data = {user_id: []}
-    for task in tasks:
-        data[user_id].append({"task": task["title"], "completed": task["completed"], "username": username})
+def get_info(id):
+    url1 = f'https://jsonplaceholder.typicode.com/users/{id}/todos'
+    empurl= f'https://jsonplaceholder.typicode.com/users/{id}'
+    # get todo tasks
+    res1 = requests.get(url1)
+    data1 = res1.json()
+    # get employee information
+    res2 = requests.get(empurl)
+    employeedata = res2.json()
 
-    filename = f"{user_id}.json"
-    with open(filename, 'w') as file:
-        json.dump(data, file, indent=4)
+    """Requred data"""
+    USER_ID = employeedata['id']
+    USERNAME = employeedata['username']
+    TASK_COMPLETED_STATUS = ''
+    TOTAL_NUMBER_OF_TASKS = len(data1)
+    TASK_TITLE = ''
+    tasks = []
+    for i in range(len(data1)):
+        """loop to add task status and title"""
+        TASK_COMPLETED_STATUS = data1[i]['completed']
+        TASK_TITLE = data1[i]['title']
+        tasks.append({"task": TASK_TITLE, "completed": TASK_COMPLETED_STATUS, "username":USERNAME})
+        
+    dictionary={USER_ID: tasks}
+    with open(f'{id}.json', 'w', newline='') as file:
+        # write dictionary to json file
+        json.dump(dictionary , file)
 
-# Example data
-user_id = "123"
-username = "example_user"
-tasks = [
-    {"title": "Task 1", "completed": True},
-    {"title": "Task 2", "completed": False},
-    {"title": "Task 3", "completed": True}
-]
-
-export_tasks_to_json(user_id, username, tasks)
+if __name__ == "__main__":
+    get_info(int(argv[1]))
