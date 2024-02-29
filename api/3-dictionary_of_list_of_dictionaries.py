@@ -1,26 +1,37 @@
 """This module makes 2 api requests and 
 uses the informatiom given to write it to a json file
 """
+
 import json
+import requests 
 
-def export_all_tasks_to_json(users):
-    data = {}
-    for user in users:
-        user_id = user["id"]
-        username = user["username"]
-        tasks = user["tasks"]
-        if tasks:  # Only record if there are tasks for the user
-            data[user_id] = [{"username": username, "task": task["title"], "completed": task["completed"]} for task in tasks]
+def get_info():
+    dictionary={}
+    empurl= f'https://jsonplaceholder.typicode.com/users'
+    
+    # get employee information
+    res2 = requests.get(empurl)
+    employeedata = res2.json()
+    
+    for employee in employeedata:
+        USER_ID = employee['id']
+        USERNAME = employee['username']
+        todo_URL = f'https://jsonplaceholder.typicode.com/users/{USER_ID}/todos'
+        
+        res1 = requests.get(todo_URL)
+        data1 = res1.json()
+        tasks = []
 
-    filename = "todo_all_employees.json"
-    with open(filename, 'w') as file:
-        json.dump(data, file, indent=4)
+        for i in range(len(data1)):
+            """loop to add task status and title"""
+            TASK_COMPLETED_STATUS = data1[i]['completed']
+            TASK_TITLE = data1[i]['title']
+            tasks.append({"task": TASK_TITLE, "completed": TASK_COMPLETED_STATUS, "username":USERNAME})
+        
+        dictionary[USER_ID] =tasks
+    with open(f'todo_all_employees.json', 'w', newline='') as file:
+        # write dictionary to json file
+        json.dump(dictionary , file)
 
-# Example data for multiple users
-users = [
-    {"id": "1", "username": "user1", "tasks": [{"title": "Task 1", "completed": True}, {"title": "Task 2", "completed": False}]},
-    {"id": "2", "username": "user2", "tasks": [{"title": "Task 3", "completed": True}, {"title": "Task 4", "completed": True}]},
-    {"id": "3", "username": "user3", "tasks": []},  # No tasks for this user
-]
-
-export_all_tasks_to_json(users)
+if __name__ == "__main__":
+    get_info()
